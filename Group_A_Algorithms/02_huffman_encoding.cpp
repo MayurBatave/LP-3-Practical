@@ -1,32 +1,80 @@
 #include <iostream>
 #include <queue>
-#include <unordered_map>
-#include <vector>
 using namespace std;
-struct Node {
-    char ch; int freq; Node *left, *right;
-    Node(char c,int f):ch(c),freq(f),left(nullptr),right(nullptr){}
-};
-struct Compare { bool operator()(Node* a, Node* b) { return a->freq > b->freq; } };
-void makeCodes(Node* root, string code, unordered_map<char,string>& codes) {
-    if (!root) return;
-    if (!root->left && !root->right) codes[root->ch] = code.empty() ? "0" : code;
-    makeCodes(root->left, code+"0", codes);
-    makeCodes(root->right, code+"1", codes);
-}
-void freeTree(Node* n) { if(n){freeTree(n->left);freeTree(n->right);delete n;} }
-int main() {
-    string s; cout << "Enter text: "; getline(cin,s);
-    if(s.empty()){ cout<<"Empty input.\n"; return 0; }
-    unordered_map<char,int> freq; for(char c:s) freq[c]++;
-    priority_queue<Node*,vector<Node*>,Compare> pq;
-    for(auto [c,f]:freq) pq.push(new Node(c,f));
-    while(pq.size()>1) {
-        Node *a=pq.top();pq.pop(); Node *b=pq.top();pq.pop();
-        Node *p=new Node('\0',a->freq+b->freq);p->left=a;p->right=b;pq.push(p);
+
+struct Node
+{
+    char ch;
+    int freq;
+    Node *left, *right;
+
+    Node(char c, int f)
+    {
+        ch = c;
+        freq = f;
+        left = right = NULL;
     }
-    Node* root=pq.top(); unordered_map<char,string> codes; makeCodes(root,"",codes);
-    cout<<"Huffman codes:\n"; for(auto [c,code]:codes) cout<<c<<" : "<<code<<'\n';
-    cout<<"Encoded text: "; for(char c:s) cout<<codes[c]; cout<<'\n';
-    freeTree(root);
+};
+
+struct Compare
+{
+    bool operator()(Node *a, Node *b)
+    {
+        return a->freq > b->freq;
+    }
+};
+
+void printCodes(Node *root, string code)
+{
+    if (root == NULL)
+        return;
+
+    if (root->left == NULL && root->right == NULL)
+    {
+        cout << root->ch << " : " << code << endl;
+    }
+
+    printCodes(root->left, code + "0");
+    printCodes(root->right, code + "1");
+}
+
+int main()
+{
+    int n;
+    cout << "Enter number of characters: ";
+    cin >> n;
+
+    priority_queue<Node *, vector<Node *>, Compare> pq;
+
+    cout << "Enter character and frequency:\n";
+
+    for (int i = 0; i < n; i++)
+    {
+        char ch;
+        int freq;
+        cin >> ch >> freq;
+
+        pq.push(new Node(ch, freq));
+    }
+
+    while (pq.size() > 1)
+    {
+        Node *left = pq.top();
+        pq.pop();
+
+        Node *right = pq.top();
+        pq.pop();
+
+        Node *newNode = new Node('$', left->freq + right->freq);
+
+        newNode->left = left;
+        newNode->right = right;
+
+        pq.push(newNode);
+    }
+
+    cout << "\nHuffman Codes:\n";
+    printCodes(pq.top(), "");
+
+    return 0;
 }
